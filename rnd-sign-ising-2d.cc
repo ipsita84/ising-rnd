@@ -122,11 +122,9 @@ int main()
 	
 	
 	for (unsigned int i = 0; i < size; ++i)
-	{for (unsigned int j = 0; j < size; ++j)
-	{sitespin[i][j] = pow(-1,roll_coin(0,1));
-	}
-	}
-	
+		for (unsigned int j = 0; j < size; ++j)
+			//sitespin[i][j] = pow(-1,roll_coin(0,1));
+			sitespin[i][j] = 2*roll_coin(0,1) - 1;
 
 	double kT(0), beta(0);
 
@@ -148,8 +146,8 @@ int main()
 	{
 		for (unsigned int j = 0; j < size; ++j)
 		{
-			J_x[i][j] = pow(-1,roll_coin(0,1));
-			J_y[i][j] = pow(-1,roll_coin(0,1));
+			J_x[i][j] = 2*roll_coin(0,1) - 1; //pow(-1,roll_coin(0,1));
+			J_y[i][j] = 2*roll_coin(0,1) - 1; //pow(-1,roll_coin(0,1));
 		}
 	}
 	
