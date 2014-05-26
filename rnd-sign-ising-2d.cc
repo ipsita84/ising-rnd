@@ -19,13 +19,9 @@
 boost::random::mt19937 gen;
 using namespace std;
 
-
 // Define global scopes 'J' and 'size' to use it across all functions
 double J = 0;
 const unsigned int size = 10;
-
-
-
 
 //function to generate random integer
 // between 2 integers a & b, including a & b
@@ -36,8 +32,6 @@ int roll_coin(int a, int b)
 	return dist(gen);
 
 }
-
-
 
 //function to calculate total energy
 //for a given spin configuration
@@ -69,7 +63,6 @@ double energy_tot(int sitespin[][size], int J_x[][size], int J_y[][size])
 }
 
 
-
 //function to calculate magnetization
 //for a given spin configuration
 	
@@ -82,13 +75,9 @@ double mag_tot(int sitespin[][size])
 		for (unsigned int j = 0; j < size ; j++) mag +=sitespin[i][j];
 	
 	}
-	
-
 			
 	return mag ;
 }
-
-
 
 
 //function to generate random real no.
@@ -104,14 +93,6 @@ double random_real(int a, int b)
 	return dist(gen);
 
 }
-
-
-
-
-
-
-
-
 
 
 int main()
