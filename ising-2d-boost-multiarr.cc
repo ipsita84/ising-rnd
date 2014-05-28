@@ -72,7 +72,7 @@ int main()
 	cin >> N_mc;
 	
 	double en_sum(0), mag_sum(0), en_sq_sum(0), mag_sq_sum(0);
-	double abs_mag_sum(0);
+	double abs_mag_sum(0), sp_heat(0), susc(0);
 	
 	
 	ofstream fout("2d.dat"); // Opens a file for output
@@ -123,10 +123,10 @@ int main()
 		abs_mag_sum +=abs(mag);
 		
 		//heat capacity per spin = (<E^2> - <E>^2 )/(system size*k*T^2)
-		double sp_heat = en_sq_sum/i - en_sum*en_sum/(i*i);
+		sp_heat = en_sq_sum/i - en_sum*en_sum/(i*i);
 		
 		//susceptibility = (<M^2> - <|M|>^2 )/(k*T)
-		double susc = mag_sq_sum/i - abs_mag_sum*abs_mag_sum/(i*i);
+		susc = mag_sq_sum/i - abs_mag_sum*abs_mag_sum/(i*i);
 		
 		
 		fout << i 
@@ -145,7 +145,17 @@ int main()
 	fout.close();
 	
 	
-
+	ofstream gout("phys_vs_T.dat", ios_base::app);
+	gout << kT/J 
+	<< '\t' << sp_heat/(sys_size*kT*kT)
+	<< '\t' << susc / kT
+	<< '\t' << en_sum / N_mc 
+	<< '\t' << en_sq_sum / N_mc  
+	<< '\t' << mag_sum / N_mc  
+	<< endl;
+	
+	cout << "Output appended to " << "phys_vs_T.dat" << endl; 
+	gout.close();
 	
 	return 0;
 	
