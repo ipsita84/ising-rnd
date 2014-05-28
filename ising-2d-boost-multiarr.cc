@@ -20,12 +20,12 @@ typedef boost::multi_array<int, 2> array_2d;
 // typedef keyword allows you to create an alias fo a data type
 
 
-// Define global scopes to use it across all functions
+// Define global scopes to use them across all functions
 double J = 0;
 const unsigned int axis1 = 10, axis2=10;
 // above assigns length along each dimension of the 2d configuration
 
-//Functions templates
+//Function templates
 int roll_coin(int a, int b);
 double random_real(int a, int b);
 double energy_tot(array_2d sitespin);
@@ -64,42 +64,53 @@ int main()
 	double energy = energy_tot(sitespin);
 	double mag = mag_tot (sitespin ) * 1.0;
 	
-	//Input from terminal no. of equilibrium steps we want
-	unsigned int maxstep(0);
+	//Input from terminal no.of Monte Carlo updates we want
+	unsigned int N_mc ;
 
-	cout << "Enter no. of equilibration steps" << endl;
-	cin >> maxstep;
+	cout << "Enter no. of Monte Carlo updates N_mc" << endl;
+	cout << "total steps = N_mc *  system size" << endl;
+	cin >> N_mc;
 	
-	double en_sum(0), mag_sum(0), en_sq_sum(0);
+	double en_sum(0), mag_sum(0), en_sq_sum(0), mag_sq_sum(0);
+	double abs_mag_sum(0);
 	
 	
 	ofstream fout("2d.dat"); // Opens a file for output
 
-	for (unsigned int i = 1; i <= maxstep; i++)
-	{
+	unsigned int sys_size = axis1*axis2 ;
+	
+	for (unsigned int i = 1; i <= N_mc; ++i)
+		{for (unsigned int j = 1; j <= sys_size; ++j)
+			{//Now choose a random spin site, say, i
 
-		//Now choose a random spin site, say, i
-
-		unsigned int rnd_row , rnd_col;
-		rnd_row = roll_coin(1, axis1)-1;
-		rnd_col = roll_coin(1, axis2)-1;
+			unsigned int rnd_row , rnd_col;
+			rnd_row = roll_coin(1, axis1)-1;
+			rnd_col = roll_coin(1, axis2)-1;
 		
-		double energy_diff =-2*nn_energy(sitespin,rnd_row,rnd_col);
+			double energy_diff=-2*nn_energy(sitespin,rnd_row,rnd_col);
 		
 
-		//Generate a random no. r such that 0 < r < 1
+			//Generate a random no. r such that 0 < r < 1
 
-		double r = random_real(0, 1);
-		double acc_ratio = exp(-1.0 * energy_diff * beta);
+			double r = random_real(0, 1);
+			double acc_ratio = exp(-1.0 * energy_diff * beta);
 
-		//Spin flipped if r <= acceptance ratio
-		if (r <= acc_ratio) 
-		{	sitespin[rnd_row] [rnd_col] *= -1;
-			energy += energy_diff;
-			mag +=2.0 * sitespin[rnd_row] [rnd_col];
-		}
+			//Spin flipped if r <= acceptance ratio
+			if (r <= acc_ratio) 
+				{	sitespin[rnd_row] [rnd_col] *= -1;
+				energy += energy_diff;
+				mag +=2.0 * sitespin[rnd_row] [rnd_col];
+				}
+			}
+		 
 		
 			
+		//Constitute a Markov chain assuming it is given at 
+		// every N steps where N = system size
+		// Find sums and averages at the end of ech N steps
+		//instead of every step, where subsequest configuration 
+		//is not very different as it involves single spin flip
+	
 		
 		//Given the energy of ising system at a selection of times 
 		// during the simulation, we can average them to find 
@@ -109,32 +120,39 @@ int main()
 		en_sum += energy ;
 		en_sq_sum += energy * energy ;
 		mag_sum += mag ;
+		abs_mag_sum +=abs(mag);
 		
-		//heat capacity per spin = (<E^2> - <E>^2 )/ (axis1*axis2*k*T^2)
+		//heat capacity per spin = (<E^2> - <E>^2 )/(system size*k*T^2)
 		double sp_heat = en_sq_sum/i - en_sum*en_sum/(i*i);
 		
-		if ((i % 1000) == 0)
-			fout << i * 1.0 / (axis1*axis2) << '\t' << en_sum / i 
-			<< '\t' << en_sq_sum / i 
-			<< '\t' << sp_heat/(axis1*axis2*kT*kT)
-			<< '\t' << mag_sum / i << endl;
+		//susceptibility = (<M^2> - <|M|>^2 )/(k*T)
+		double susc = mag_sq_sum/i - abs_mag_sum*abs_mag_sum/(i*i);
+		
+		
+		fout << i 
+		<< '\t' << en_sum / i 
+		<< '\t' << en_sq_sum / i 
+		<< '\t' << sp_heat/(sys_size*kT*kT)
+		<< '\t' << mag_sum / i 
+		<< '\t' << susc / kT
+		<< endl;
+		
 
-	}
+		}
 	
 	
 	
 	fout.close();
 	
 	
-	//cout << (en_sq_sum-en_sum) << endl;
-	
+
 	
 	return 0;
 	
 	}
 	
 	
-	//function to generate random integer
+//function to generate random integer
 // between 2 integers a & b, including a & b
 int roll_coin(int a, int b)
 {
