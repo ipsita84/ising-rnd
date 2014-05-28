@@ -70,7 +70,7 @@ int main()
 	cout << "Enter no. of equilibration steps" << endl;
 	cin >> maxstep;
 	
-	double en_sum(0), mag_sum(0);
+	double en_sum(0), mag_sum(0), en_sq_sum(0);
 	
 	
 	ofstream fout("2d.dat"); // Opens a file for output
@@ -106,11 +106,17 @@ int main()
 		//the estimators of internal energy
 		//dividing it by no. of sites gives internal energy per site
 		
-		en_sum += energy / (axis1*axis2) ;
-		mag_sum += mag/(axis1*axis2) ;
+		en_sum += energy ;
+		en_sq_sum += energy * energy ;
+		mag_sum += mag ;
+		
+		//heat capacity per spin = (<E^2> - <E>^2 )/ (axis1*axis2*k*T^2)
+		double sp_heat = en_sq_sum/i - en_sum*en_sum/(i*i);
 		
 		if ((i % 1000) == 0)
 			fout << i * 1.0 / (axis1*axis2) << '\t' << en_sum / i 
+			<< '\t' << en_sq_sum / i 
+			<< '\t' << sp_heat/(axis1*axis2*kT*kT)
 			<< '\t' << mag_sum / i << endl;
 
 	}
@@ -118,6 +124,9 @@ int main()
 	
 	
 	fout.close();
+	
+	
+	//cout << (en_sq_sum-en_sum) << endl;
 	
 	
 	return 0;
