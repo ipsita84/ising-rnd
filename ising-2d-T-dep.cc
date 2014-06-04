@@ -32,7 +32,7 @@ int roll_coin(int a, int b);
 double random_real(int a, int b);
 double energy_tot(array_2d sitespin);
 double mag_tot(array_2d sitespin);
-double nn_energy(array_2d sitespin, unsigned int rnd_row, unsigned int rnd_col);
+double nn_energy(array_2d sitespin, unsigned int row, unsigned int col);
 
 int main()
 {	//No.of Monte Carlo updates we want
@@ -73,15 +73,21 @@ int main()
 		for (unsigned int i = 1; i <= N_mc; ++i)
 		{
 			for (unsigned int j = 1; j <= sys_size; ++j)
-			{	//Now choose a random spin site, say, i
+			{	//Now choose a random spin site with site no.=label
 
-				unsigned int rnd_row, rnd_col;
-				rnd_row = roll_coin(1, axis1) - 1;
-				rnd_col = roll_coin(1, axis2) - 1;
+			unsigned int label, row, col ;
+			label = roll_coin(1, sys_size);
+			if (label % axis2 == 0)
+			{	row = (label / axis2) - 1;
+				col = axis2 -1 ; 
+			}
+			else
+			{	col = label % axis2 - 1;
+				row = (label-col-1)/axis2;
+			}
 
-				double
-				    energy_diff =
-				    -2 * nn_energy(sitespin, rnd_row, rnd_col);
+			double energy_diff =-2 * nn_energy(sitespin, row, col);
+
 
 				//Generate a random no. r such that 0 < r < 1
 
@@ -91,9 +97,9 @@ int main()
 				//Spin flipped if r <= acceptance ratio
 				if (r <= acc_ratio)
 				{
-					sitespin[rnd_row][rnd_col] *= -1;
+					sitespin[row][col] *= -1;
 					energy += energy_diff;
-					mag += 2.0 * sitespin[rnd_row][rnd_col];
+					mag += 2.0 * sitespin[row][col];
 				}
 			}
 
@@ -210,64 +216,64 @@ double mag_tot(array_2d sitespin)
 }
 
 //Calculating interaction energy change for spin 
-//at random site->(rnd_row,rnd_col) with its nearest neighbours
-double nn_energy(array_2d sitespin, unsigned int rnd_row, unsigned int rnd_col)
+//at random site->(row,col) with its nearest neighbours
+double nn_energy(array_2d sitespin, unsigned int row, unsigned int col)
 {
 	double nn_en = 0;
 
-	if (rnd_row > 0 && rnd_row < axis1 - 1)
+	if (row > 0 && row < axis1 - 1)
 	{
 		nn_en -=
-		    J * sitespin[rnd_row][rnd_col] * sitespin[rnd_row -
-							      1][rnd_col];
+		    J * sitespin[row][col] * sitespin[row -
+							      1][col];
 		nn_en -=
-		    J * sitespin[rnd_row][rnd_col] * sitespin[rnd_row +
-							      1][rnd_col];
+		    J * sitespin[row][col] * sitespin[row +
+							      1][col];
 	}
 
-	if (rnd_col > 0 && rnd_col < axis2 - 1)
+	if (col > 0 && col < axis2 - 1)
 	{
 		nn_en -=
-		    J * sitespin[rnd_row][rnd_col] * sitespin[rnd_row][rnd_col -
+		    J * sitespin[row][col] * sitespin[row][col -
 								       1];
 		nn_en -=
-		    J * sitespin[rnd_row][rnd_col] * sitespin[rnd_row][rnd_col +
+		    J * sitespin[row][col] * sitespin[row][col +
 								       1];
 	}
 
-	if (rnd_row == 0)
+	if (row == 0)
 	{
 		nn_en -=
-		    J * sitespin[0][rnd_col] * sitespin[axis1 - 1][rnd_col];
-		nn_en -= J * sitespin[0][rnd_col] * sitespin[1][rnd_col];
+		    J * sitespin[0][col] * sitespin[axis1 - 1][col];
+		nn_en -= J * sitespin[0][col] * sitespin[1][col];
 
 	}
 
-	if (rnd_row == axis1 - 1)
+	if (row == axis1 - 1)
 	{
 		nn_en -=
-		    J * sitespin[axis1 - 1][rnd_col] * sitespin[axis1 -
-								2][rnd_col];
+		    J * sitespin[axis1 - 1][col] * sitespin[axis1 -
+								2][col];
 		nn_en -=
-		    J * sitespin[axis1 - 1][rnd_col] * sitespin[0][rnd_col];
+		    J * sitespin[axis1 - 1][col] * sitespin[0][col];
 
 	}
 
-	if (rnd_col == 0)
+	if (col == 0)
 	{
 		nn_en -=
-		    J * sitespin[rnd_row][0] * sitespin[rnd_row][axis2 - 1];
-		nn_en -= J * sitespin[rnd_row][0] * sitespin[rnd_row][1];
+		    J * sitespin[row][0] * sitespin[row][axis2 - 1];
+		nn_en -= J * sitespin[row][0] * sitespin[row][1];
 
 	}
 
-	if (rnd_col == axis2 - 1)
+	if (col == axis2 - 1)
 	{
 		nn_en -=
-		    J * sitespin[rnd_row][axis2 - 1] * sitespin[rnd_row][axis2 -
+		    J * sitespin[row][axis2 - 1] * sitespin[row][axis2 -
 									 2];
 		nn_en -=
-		    J * sitespin[rnd_row][axis2 - 1] * sitespin[rnd_row][0];
+		    J * sitespin[row][axis2 - 1] * sitespin[row][0];
 
 	}
 	return nn_en;
