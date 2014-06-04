@@ -60,16 +60,16 @@ int main()
 
 	ofstream fout("mutual-info.dat"); // Opens a file for output
 
-	for (kT = T_min; kT < T_max + del_T; kT += del_T)
+		for (kT = T_min; kT < T_max + del_T; kT += del_T)
 	{	double beta_max = 1.0/kT ;
 	 	mut_info = 0 ;
-	 	for (beta = beta_min; beta < 2.0*beta_max + del_beta; beta += del_beta)
-	 	{	if (beta < beta_max + del_beta) 
-	  		mut_info +=( modi_en(beta)-2.0*en_avg(beta) )*del_beta;
+	 	for (beta = beta_min; beta < beta_max + beta_min; beta += del_beta)
+	 		mut_info +=(2.0*modi_en(beta)-3.0 *en_avg(beta))*del_beta;
+
+	        for (beta = beta_max; beta < 2*beta_max + beta_min; beta += del_beta)
 	        	mut_info -= en_avg(beta)*del_beta;
 	  
-		}
-	 	fout << kT / J << '\t' << mut_info << endl;
+		fout << kT / J << '\t' << mut_info << endl;
 	
 	}
 
