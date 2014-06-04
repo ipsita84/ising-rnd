@@ -53,7 +53,7 @@ int main()
 	cout << "Enter increment of beta at each step" << endl;
 	cin >> del_beta;
 	
-	cout << "Enter beta_min to aprroximate infinite temp" << endl;
+	cout << "Enter beta_min to approximate infinite temp" << endl;
 	cin >> beta_min;
 	
 	double mut_info(0); //mutual information I_2
@@ -102,7 +102,7 @@ double modi_en(double beta)
 				sitespin2[i][j] = sitespin1[i][j];
 			}
 			
-	//For subsystem B,both replicas have independent spin configurations
+	//For subsystem B, the two replicas have independent spin configurations
 	for (unsigned int i = axis1/2 ; i < axis1; ++i)
 		for (unsigned int j = 0; j < axis2; ++j)
 			{	sitespin1[i][j] = 2 * roll_coin(0, 1) - 1;
