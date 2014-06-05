@@ -190,7 +190,7 @@ double energy_tot(array_2d sitespin)
 			if (v1 == axis2) v1 = 0;
 			if (v2 == -1) v2 = axis2-1;
 			sum = sitespin[i][v1]+sitespin[u1][j]+sitespin[u1][v1]+sitespin[u1][v2];
-			energy += J * sitespin[i][j] * sum
+			energy += J * sitespin[i][j] * sum ;
 		}
 	}
 
@@ -229,7 +229,7 @@ double nn_energy(array_2d sitespin, unsigned int row, unsigned int col)
 	if (col == 0) v2 = axis2-1;
 	sum = sitespin[row][v1] + sitespin[row][v2] + sitespin[u1][v1] + sitespin[u1][v2] ;
 	sum += sitespin[u2][v1] + sitespin[u1][v2] + sitespin[u1][col] + sitespin[u2][col] ;
-	nn_en = J * sitespin[row,col] * sum ;
+	nn_en = J * sitespin[row][col] * sum ;
 	return nn_en;
 }
 
