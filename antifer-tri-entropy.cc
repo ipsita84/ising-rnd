@@ -73,7 +73,7 @@ int main()
 //Function: int gsl_integration_qags (const gsl_function * f,double a,double b, double epsabs, double epsrel,size_t limit,gsl_integration_workspace * workspace,double * result, double *abserr)  int
 //gsl_integration_cquad (const gsl_function * f, double a, double b, double epsabs, double epsrel, gsl_integration_cquad_workspace * workspace, double * result, double * abserr, size_t * nevals)		
   		gsl_integration_cquad (&F, 0, beta, 1e-6, 1e-4, w, &entropy, &abs_error, NULL);
-		entropy += log(2.0) + (beta * avg_en(beta))/(axis1*axis2);
+		entropy += log(2.0) + beta * avg_en(beta);
 	  
 		fout << beta << '\t' << entropy << '\t' << abs_error << endl;
 	
@@ -168,7 +168,7 @@ double nn_energy(array_2d sitespin, unsigned int row, unsigned int col)
 	return nn_en;
 }
 
-//calculating avg total energy at temp kT
+//calculating avg total energy per spin at inverse temp beta
 double avg_en (double beta)
 {	// Create a 2d array that is axis1 * axis2
 		array_2d sitespin(boost::extents[axis1][axis2]);
@@ -221,7 +221,7 @@ double avg_en (double beta)
 
 		}
 
-		return en_sum / N_mc;
+		return en_sum / (N_mc*sys_size);
 }
 
 
