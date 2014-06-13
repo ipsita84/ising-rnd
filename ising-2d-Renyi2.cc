@@ -10,6 +10,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+#include <gsl/gsl_integration.h>
 
 // gen is a variable name
 // Its data-type is boost::random::mt19937
@@ -26,7 +27,7 @@ const unsigned int axis1 = 10, axis2 = 10;
 //axis1 should be of even no. of sites
 // above assigns length along each dimension of the 2d configuration
 //No.of Monte Carlo updates we want
-unsigned int N_mc = 10000;
+unsigned int N_mc = 100;
 
 //Function templates
 double en_avg(double beta);
@@ -35,11 +36,13 @@ int roll_coin(int a, int b);
 double random_real(int a, int b);
 double energy_tot(array_2d sitespin);
 double nn_energy(array_2d sitespin, unsigned int row, unsigned int col);
+double f (double x, void * params);
+double g (double x, void * params);
 
 int main()
 {	
 
-	double kT(0), beta(0), del_beta(0), beta_min(0), T_min(0), T_max(0), del_T(0);
+	double kT(0), T_min(0), T_max(0), del_T(0);
 
 	cout << "Enter minimum T (in units of k)" << endl;
 	cin >> T_min;
@@ -49,25 +52,33 @@ int main()
 
 	cout << "Enter increment of T (in units of k) at each step" << endl;
 	cin >> del_T;
-	
-	cout << "Enter increment of beta at each step" << endl;
-	cin >> del_beta;
-	
-	cout << "Enter beta_min to approximate infinite temp" << endl;
-	cin >> beta_min;
+
 	
 	double mut_info(0); //mutual information I_2
 
 	ofstream fout("mutual-info.dat"); // Opens a file for output
+	
+	gsl_integration_cquad_workspace *w
+	 = gsl_integration_cquad_workspace_alloc (1000);
 
-		for (kT = T_min; kT < T_max + del_T; kT += del_T)
-	{	double beta_max = 1.0/kT ;
+	for (kT = T_min; kT < T_max + del_T; kT += del_T)
+	{	double beta = 1.0/kT ;
 	 	mut_info = 0 ;
-	 	for (beta = beta_min; beta < beta_max + beta_min; beta += del_beta)
-	 		mut_info +=(2.0*modi_en(beta)-3.0 *en_avg(beta))*del_beta;
-
-	        for (beta = beta_max; beta < 2*beta_max + beta_min; beta += del_beta)
-	        	mut_info -= en_avg(beta)*del_beta;
+	 	
+	 	double term1(0), term2(0), term3(0), abs_error(0);
+	 	gsl_function F;
+  		F.function = &f;
+		F.params = NULL;
+//Function: int gsl_integration_qags (const gsl_function * f,double a,double b, double epsabs, double epsrel,size_t limit,gsl_integration_workspace * workspace,double * result, double *abserr)  int
+//gsl_integration_cquad (const gsl_function * f, double a, double b, double epsabs, double epsrel, gsl_integration_cquad_workspace * workspace, double * result, double * abserr, size_t * nevals)		
+  		gsl_integration_cquad (&F, 0, beta, 1e-6, 1e-4, w, &term2, &abs_error, NULL);
+  		gsl_integration_cquad (&F,beta, 2.0*beta, 1e-6, 1e-4, w, &term3, &abs_error, NULL);
+  		
+  		F.function = &g;
+  		gsl_integration_cquad (&F, 0, beta, 1e-6, 1e-4, w, &term1, &abs_error, NULL);
+		
+	        
+	        mut_info =2.0*term1 +3.0*term2 + term3;
 	  
 		fout << kT / J << '\t' << mut_info << endl;
 	
@@ -78,6 +89,19 @@ int main()
 	fout.close();
 	return 0;
 
+}
+
+//performing numerical integration using gsl
+double f (double beta, void * params) 
+{
+  double f = -en_avg(beta) ;
+  return f;
+}
+
+double g (double beta, void * params) 
+{
+  double g = modi_en(beta) ;
+  return g;
 }
 
 //function to calculate avg energy for replica spin config at temp 1/beta
@@ -118,7 +142,7 @@ double modi_en(double beta)
 
 	for (unsigned int i = 1; i <= N_mc; ++i)
 	{
-		for (unsigned int j = 1; j <= 2*sys_size; ++j)
+		for (unsigned int j = 1; j <= 3*sys_size/2; ++j)
 		{	//Choose a random spin site for the entire 2 replica system
 			double energy_diff(0);
 			label = roll_coin(1,2*sys_size);
@@ -134,12 +158,9 @@ double modi_en(double beta)
 					row = (label-col-1)/axis2;
 				} 
 			
-			
+				energy_diff=-2.0*nn_energy(sitespin1, row, col);
 				if (row < axis1/2)
-					energy_diff=-4.0*nn_energy(sitespin1, row, col);
-				
-				if (row >= axis1/2)
-					energy_diff=-2.0*nn_energy(sitespin1, row, col);
+					energy_diff +=-2.0*nn_energy(sitespin2, row, col);
 
 				//Generate a random no. r such that 0 < r < 1
 
@@ -150,7 +171,9 @@ double modi_en(double beta)
 				if (r <= acc_ratio)
 				{
 					sitespin1[row][col] *= -1;
-					if (row < axis1/2) sitespin2[row][col] *= -1;
+					if (row < axis1/2) 
+						sitespin2[row][col] *=-1;
+							//this line on addition creates trouble
 					energy += energy_diff;
 				}
 			}
@@ -168,12 +191,11 @@ double modi_en(double beta)
 				} 
 			
 			
+				energy_diff=-2.0*nn_energy(sitespin2, row, col);
 				if (row < axis1/2)
-					energy_diff=-4.0*nn_energy(sitespin2, row, col);
-				
-				if (row >= axis1/2)
-					energy_diff=-2.0*nn_energy(sitespin2, row, col);
+					energy_diff +=-2.0*nn_energy(sitespin1, row, col);
 
+					 
 				//Generate a random no. r such that 0 < r < 1
 
 				r = random_real(0, 1);
@@ -183,7 +205,9 @@ double modi_en(double beta)
 				if (r <= acc_ratio)
 				{
 					sitespin2[row][col] *= -1;
-					if (row < axis1/2) sitespin1[row][col] *= -1;
+					if (row < axis1/2) 
+						sitespin1[row][col] *=-1;
+						
 					energy += energy_diff;
 				}
 			}
@@ -192,7 +216,7 @@ double modi_en(double beta)
 
 		en_sum += energy;
 	}
-	double avg_en = en_sum / N_mc ;
+	double avg_en =en_sum / N_mc ;
 	return avg_en ;
 }
 
@@ -355,4 +379,4 @@ double nn_energy(array_2d sitespin, unsigned int row, unsigned int col)
 	return nn_en;
 }
 
-//  g++ -Wall -O3 ising-2d-Renyi2.cc -o testo
+//  g++ -Wall -O3 -lgsl -lgslcblas -lm ising-2d-Renyi2.cc -o testo
