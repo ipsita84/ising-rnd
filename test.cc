@@ -1,3 +1,4 @@
+//  g++ -Wall -O3 test.cc -o testo
 // 2nd Renyi entropy for classical 2d Ising model in zero magnetic field 
 //Metropolis algorithm employed
 //Parameters that can be changed for different runs:
@@ -283,4 +284,3 @@ double nn_energy(array_2d sitespin, unsigned int row, unsigned int col)
 	return nn_en;
 }
 
-//  g++ -Wall -O3 test.cc -o testo
