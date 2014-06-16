@@ -102,7 +102,7 @@ double modi_en(double beta)
 
 	for (unsigned int i = 1; i <= N_mc; ++i)
 	{
-		for (unsigned int j = 1; j <= 2*sys_size; ++j)
+		for (unsigned int j = 1; j <= 3*sys_size/2; ++j)
 		{	//Choose a random spin site for the entire 2 replica system
 			double energy_diff(0);
 			label = roll_coin(1,2*sys_size);
@@ -118,12 +118,9 @@ double modi_en(double beta)
 					row = (label-col-1)/axis2;
 				} 
 			
-			
+				energy_diff=-2.0*nn_energy(sitespin1, row, col);
 				if (row < axis1/2)
-					energy_diff=-2.0*nn_energy(sitespin1, row, col);
-				
-				if (row >= axis1/2)
-					energy_diff=-2.0*nn_energy(sitespin1, row, col);
+					energy_diff +=-2.0*nn_energy(sitespin2, row, col);
 
 				//Generate a random no. r such that 0 < r < 1
 
@@ -134,7 +131,9 @@ double modi_en(double beta)
 				if (r <= acc_ratio)
 				{
 					sitespin1[row][col] *= -1;
-					//if (row < axis1/2) sitespin2[row][col] *= -1;
+					if (row < axis1/2) 
+						sitespin2[row][col] *=-1;
+							//this line on addition creates trouble
 					energy += energy_diff;
 				}
 			}
@@ -152,12 +151,11 @@ double modi_en(double beta)
 				} 
 			
 			
+				energy_diff=-2.0*nn_energy(sitespin2, row, col);
 				if (row < axis1/2)
-					energy_diff=-2.0*nn_energy(sitespin2, row, col);
-				
-				if (row >= axis1/2)
-					energy_diff=-2.0*nn_energy(sitespin2, row, col);
+					energy_diff +=-2.0*nn_energy(sitespin1, row, col);
 
+					 
 				//Generate a random no. r such that 0 < r < 1
 
 				r = random_real(0, 1);
@@ -167,7 +165,9 @@ double modi_en(double beta)
 				if (r <= acc_ratio)
 				{
 					sitespin2[row][col] *= -1;
-					//if (row < axis1/2) sitespin1[row][col] *= -1;
+					if (row < axis1/2) 
+						sitespin1[row][col] *=-1;
+						
 					energy += energy_diff;
 				}
 			}
